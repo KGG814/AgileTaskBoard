@@ -1,0 +1,63 @@
+\hypertarget{classBoard}{\section{Board Class Reference}
+\label{classBoard}\index{Board@{Board}}
+}
+
+
+Representation of a Scrum task board.  
+
+
+
+
+{\ttfamily \#include $<$task\-Board.\-hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classBoard_aaaebf8dd8f11554ded807021f34161c8}{bool {\bfseries list\-Stories} (void)}\label{classBoard_aaaebf8dd8f11554ded807021f34161c8}
+
+\item 
+\hypertarget{classBoard_aeaecb30a99e29b511441074fa9efebe0}{bool {\bfseries create\-Story} (int id, std\-::string description)}\label{classBoard_aeaecb30a99e29b511441074fa9efebe0}
+
+\item 
+\hypertarget{classBoard_a0b5748a4477188a21197eae0675a7afd}{bool {\bfseries complete\-Story} (int id)}\label{classBoard_a0b5748a4477188a21197eae0675a7afd}
+
+\item 
+\hypertarget{classBoard_a437518b81979b9c06e6216003f6b3874}{bool {\bfseries load\-Board} (std\-::string file\-Name)}\label{classBoard_a437518b81979b9c06e6216003f6b3874}
+
+\item 
+\hypertarget{classBoard_a2c42bbdccb3aded7800329e959fa414f}{bool {\bfseries delete\-Story} (int id)}\label{classBoard_a2c42bbdccb3aded7800329e959fa414f}
+
+\item 
+\hypertarget{classBoard_ae4c436da4f7f3191a9096bc5fdf1d849}{bool {\bfseries exit} (std\-::string filename)}\label{classBoard_ae4c436da4f7f3191a9096bc5fdf1d849}
+
+\item 
+\hypertarget{classBoard_a57baa2f410a74bcf422f5f4b50e2705a}{bool {\bfseries create\-Task} (int story\-Id, int id, std\-::string description)}\label{classBoard_a57baa2f410a74bcf422f5f4b50e2705a}
+
+\item 
+\hypertarget{classBoard_abf2d89b68049a7a0af1ac447ea8e0731}{bool {\bfseries list\-Tasks} (int story\-Id)}\label{classBoard_abf2d89b68049a7a0af1ac447ea8e0731}
+
+\item 
+\hypertarget{classBoard_a61e7a41cc970d49fcee032906231f6fa}{bool {\bfseries delete\-Task} (int story\-Id, int id)}\label{classBoard_a61e7a41cc970d49fcee032906231f6fa}
+
+\item 
+\hypertarget{classBoard_aae346107b343fd53653ee6a4e302474b}{bool {\bfseries move\-Task} (int story\-Id, int id, int column)}\label{classBoard_aae346107b343fd53653ee6a4e302474b}
+
+\item 
+\hypertarget{classBoard_af25b1a2cfef182fea1a8d578af0eef5e}{bool {\bfseries update\-Task} (int story\-Id, int id, std\-::string description)}\label{classBoard_af25b1a2cfef182fea1a8d578af0eef5e}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classBoard_adb81609ae4130f5668d332c202c6569b}{std\-::vector$<$ \hyperlink{classStory}{Story} $\ast$ $>$ {\bfseries backlog}}\label{classBoard_adb81609ae4130f5668d332c202c6569b}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Representation of a Scrum task board. 
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+task\-Board.\-hpp\item 
+Board.\-cpp\end{DoxyCompactItemize}

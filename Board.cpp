@@ -2,36 +2,35 @@
 #include <fstream>
 #include <iostream>
 #include "taskBoard.hpp"
+#include "exceptions.hpp"
 
-bool Board::listStories(void) {
+void Board::listStories(void) {
   for (auto story = backlog.begin(); story != backlog.end(); story++) {
     std::cout << (*story)->getId() << " : " ;
     std::cout << (*story)->getDescription() << std::endl;
   }
-  return true;
 }
 
-bool Board::createStory(int id, std::string description) {
+void Board::createStory(int id, std::string description) {
   
-  if(!storyExists(id)) {
+  if (!storyExists(id)) {
     backlog.push_back(new Story(id, description));
-    return true;
+  } else {
+    throw ex_storyExists(id);
   }
-  error = ERROR_STORY_EXISTS;
-  return false;
 }
 
-bool Board::completeStory(int id) {
+void Board::completeStory(int id) {
   Story* story = getStory(id);
   if (story) {
     story->completeStory();
-    return true;
+  } else {
+    throw ex_noStory(id);
   }
-  error = ERROR_NO_STORY;
-  return false;
+  
 }
 
-bool Board::loadBoard(std::string fileName) {
+void Board::loadBoard(std::string fileName) {
   
   // Data is stored in the following format in the file:
   
@@ -42,7 +41,6 @@ bool Board::loadBoard(std::string fileName) {
   // For a task:
   // T,storyID,id,column
   // Task.description
-  
 
   std::ifstream file (fileName);
   std::string line, data, description;
@@ -50,94 +48,81 @@ bool Board::loadBoard(std::string fileName) {
   std::list<std::string> taskCSV;
   int id, column, storyId;
   bool complete;
-  
-  
+ 
   // Parse the saved text file
-  if (file.is_open()) {
-    
+  if (file.is_open()) {    
     while (!file.eof()) {
-      if(file.peek() == 'S') {
-        
+      if (file.peek() == 'S') {        
         // This is story data
         // Get the data and the description
         getline(file, line);
         storyCSV.push_back(line);
-        if(!file.eof()) {
+        if (!file.eof()) {
           getline(file, line);
         } else {
           line.clear();
         }
-        storyCSV.push_back(line);
-      
+        storyCSV.push_back(line);      
       } else if (file.peek() == 'T') {
         // This is task data
         // Get the data and the description
         getline(file, line);
         taskCSV.push_back(line);
-        if(!file.eof()) {
+        if (!file.eof()) {
           getline(file, line);
         } else {
           line.clear();
         }
         taskCSV.push_back(line);
       } else {
-        // Unknown data, skip it
-        
+        // Unknown data, skip it       
         getline(file, line);
-      }
-      
+      }      
     }
     file.close();
     // First add all the stories
-    while(storyCSV.size() >= 2) {
+    while(storyCSV.size() >= MIN_LINES) {
       data = storyCSV.front();
       storyCSV.pop_front();
       description = storyCSV.front();
       storyCSV.pop_front();     
-      data.erase(0, 2); // Remove identifier    
-      storyId = std::stoi(data.substr(0, data.find(",")));      
-      complete = std::stoi(data.substr(data.find(",")+1));        
+      data.erase(INDEX_START, ID_INDEX_END); // Remove identifier    
+      storyId = std::stoi(data.substr(INDEX_START, data.find(",")));      
+      complete = std::stoi(data.substr(data.find(",")+DELIM_OFFSET));        
       loadStory(storyId, description, complete);
-    } 
-    
-    // Then add all the tasks
-    
-    while(taskCSV.size() >= 2) {
+    }     
+    // Then add all the tasks   
+    while(taskCSV.size() >= MIN_LINES) {
       data = taskCSV.front();
       taskCSV.pop_front();
       description = taskCSV.front();
       taskCSV.pop_front();      
-      data.erase(0, 2); // Remove identifier
-      storyId = std::stoi(data.substr(0, data.find(",")));
-      data.erase(0,data.find(",")+1);
-      id = std::stoi(data.substr(0, data.find(",")));
-      column = std::stoi(data.substr(data.find(",")+1));
+      data.erase(INDEX_START, ID_INDEX_END); // Remove identifier
+      storyId = std::stoi(data.substr(INDEX_START, data.find(",")));
+      data.erase(INDEX_START,data.find(",")+DELIM_OFFSET);
+      id = std::stoi(data.substr(INDEX_START, data.find(",")));
+      column = std::stoi(data.substr(data.find(",")+DELIM_OFFSET));
       loadTask(storyId, id, description, column);
       
-    } 
-    
-    return true;
-    
+    }    
   } else {
-    error = ERROR_FILE;
-    return false;
+    throw ex_file(fileName);
   }
 }
 
-bool Board::deleteStory(int id) {
+void Board::deleteStory(int id) {
   Story* toDelete;  
   for (auto story = backlog.begin(); story != backlog.end(); story++) {
     if ((*story)->getId() == id) {
       delete *story;
       backlog.erase(story); // Invalidated iterator, but we're exiting anyway
-      return true;
+      return;
     }
   }
-  error = ERROR_NO_STORY;
-  return false;
+  throw ex_noStory(id);
 }
 
-bool Board::exit(std::string filename) {
+void Board::exit(std::string filename) {
   storeBoard(filename);
   auto story = backlog.begin();
   while (story != backlog.end()) {
@@ -145,76 +130,67 @@ bool Board::exit(std::string filename) {
     delete *story;
     story = backlog.erase(story); // iterator is not invalidated
   }
-  return true;
 }
 
-bool Board::createTask(int storyId, int id, std::string description) {
+void Board::createTask(int storyId, int id, std::string description) {
   Story* story = getStory(storyId);
-  if (getStory(storyId)) {
-    return story->createTask(id, description);
-  }
-  error = ERROR_NO_STORY;
-  return false;
-
-}
-
-bool Board::listTasks(int storyId) {
-  Story* story = getStory(storyId);
-  if (getStory(storyId)) {
-    return story->listTasks();
-  }
-  error = ERROR_NO_STORY;
-  return false;
-}
-
-bool Board::deleteTask(int storyId, int id) {
-  Story* story = getStory(storyId);
-  if (getStory(storyId)) {
-    return story->deleteTask(id);
-  }
-  error = ERROR_NO_STORY;
-  return false;
-}
-
-bool Board::moveTask(int storyId, int id, int column) {
-  Story* story = getStory(storyId);
-  if (getStory(storyId)) {
-    return story->moveTask(id, column);
-  }
-  error = ERROR_NO_STORY;
-  return false;
-}
-
-bool Board::updateTask(int storyId, int id, std::string description) {
-  Story* story = getStory(storyId);
-  if (getStory(storyId)) {
-    return story->updateTask(id, description);
-  }
-  error = ERROR_NO_STORY;
-  return false;
-}
-
-bool Board::loadStory(int id, std::string description, bool complete) {
-  
-  if (createStory(id, description)) {
-    if (complete) {
-      return completeStory(id);
-    }
-    return true;
-  }
-  // error already set to  ERROR_STORY_EXISTS;
-  return false; 
-}
-
-bool Board::loadTask(int storyId,int id,std::string description,int column) {
-  
-  Story* story = getStory(storyId);
-    
   if (story) {
-    return story->loadTask(id, description, column);
+    story->createTask(id, description);
+  } else {
+    throw ex_noStory(id);
   }
-  error = ERROR_NO_STORY;
-  return false;
+}
+
+void Board::listTasks(int id) {
+  Story* story = getStory(id);
+  if (story) {
+    story->listTasks();
+  } else {
+    throw ex_noStory(id);
+  }
+}
+
+void Board::deleteTask(int storyId, int id) {
+  Story* story = getStory(storyId);
+  if (story) {
+    story->deleteTask(id);
+  } else {
+    throw ex_noStory(id);
+  }
+}
+
+void Board::moveTask(int storyId, int id, int column) {
+  Story* story = getStory(storyId);
+  if (story) {
+    story->moveTask(id, column);
+  } else {
+    throw ex_noStory(id);
+  }
+}
+
+void Board::updateTask(int storyId, int id, std::string description) {
+  Story* story = getStory(storyId);
+  if (story) {
+    story->updateTask(id, description);
+  } else {
+    throw ex_noStory(id);
+  } 
+}
+
+void Board::loadStory(int id, std::string description, bool complete) { 
+  createStory(id, description);
+  if (complete) {
+    completeStory(id);
+  }
+}
+
+void Board::loadTask(int storyId,int id,std::string description,int column) {
+  Story* story = getStory(storyId);   
+  if (story) {
+    story->loadTask(id, description, column);
+  } else {
+    throw ex_noStory(id);
+  } 
 }
 
 bool Board::storyExists(int id) {
@@ -224,13 +200,12 @@ bool Board::storyExists(int id) {
   return false;
 }
 
-bool Board::storeBoard(std::string filename) {
+void Board::storeBoard(std::string filename) {
   std::ofstream file(filename);
   std::vector<Story*>::iterator story = backlog.begin();
   for (story = backlog.begin(); story != backlog.end(); story++) {
     (*story)->storeStory(file);
   }
-  return true;
 }
 
 Story* Board::getStory(int id) {

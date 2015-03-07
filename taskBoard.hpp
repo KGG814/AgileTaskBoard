@@ -1,53 +1,66 @@
 #include <vector>
 #include <string>
+#include <exception>
 
-#define TODO 0
-#define IN_PROCESS 1
-#define TO_VERIFY 2
-#define DONE 3
+#define TODO                0
+#define IN_PROCESS          1
+#define TO_VERIFY           2
+#define DONE                3
 
-#define NO_ERROR 0
-#define ERROR_NO_STORY 1
-#define ERROR_NO_TASK 2
-#define ERROR_COLUMN 3
-#define ERROR_INTEGRITY 4
-#define ERROR_FILE 5
-#define ERROR_STORY_EXISTS 6
-#define ERROR_TASK_EXISTS 7
-#define ERROR_UNDEF_ARG 8
-#define ERROR_NUM_ARG 9
-#define ERROR_UNDEF_CMD 10
+#define FIRST_COMMAND       1
 
-extern int error;
+#define MIN_ARGS            2
+
+#define CREATE_STORY_ARGS   2
+#define CREATE_TASK_ARGS    3
+#define DELETE_TASK_ARGS    2
+#define MOVE_TASK_ARGS      3
+#define UPDATE_TASK_ARGS    3
+
+#define MIN_LINES           2
+
+
+#define INDEX_START         0
+#define ID_INDEX_END        2
+
+#define DELIM_OFFSET        1
+
+
+/**
+ * \brief Represents a task in a story on the board.
+ */
 
 class Task {
   public:
     Task(int id, std::string description);
-    bool updateDescription(std::string description);
+    void updateDescription(std::string description);
     int getId(void);
-    bool storeTask(std::ofstream &file, int storyId, int column);
+    void storeTask(std::ofstream &file, int storyId, int column);
     std::string getDescription(void);
   private:
     int id;
     std::string description;
 };
 
+/**
+ * \brief Represents a story on the board.
+ */
 class Story {
   public:     
     Story(int id, std::string description);
-    bool createTask(int id, std::string description);
-    bool loadTask(int id, std::string description, int column);
-    bool moveTask(int id, int destination);                                
-    bool completeStory(void);
+    void createTask(int id, std::string description);
+    void loadTask(int id, std::string description, int column);
+    void moveTask(int id, int destination);                                
+    void completeStory(void);
     bool isComplete(void);
-    bool deleteTask(int id);
-    bool updateTask(int id, std::string description);
+    void deleteTask(int id);
+    void updateTask(int id, std::string description);
     bool taskExists(int id);
-    bool clearStory(void);
+    void clearStory(void);
     int getId(void);
     std::string getDescription(void);
-    bool storeStory(std::ofstream &file);
-    bool listTasks();
+    void storeStory(std::ofstream &file);
+    void listTasks();
 
   private:
     int id;
@@ -57,26 +70,33 @@ class Story {
     Task* getTask(int id);
 };
 
+/**
+ *  \brief Representation of a Scrum task board
+ */
+
 class Board {
   public:
-    bool listStories(void);
-    bool createStory(int id, std::string description);
-    bool completeStory(int id);
-    bool loadBoard(std::string fileName);
-    bool deleteStory(int id);
-    bool exit(std::string filename);
-    bool createTask(int storyId, int id, std::string description);
-    bool listTasks(int storyId);
-    bool deleteTask(int storyId, int id);
-    bool moveTask(int storyId, int id, int column);
-    bool updateTask(int storyId, int id, std::string description);
+    void listStories(void);
+    void createStory(int id, std::string description);
+    void completeStory(int id);
+    void loadBoard(std::string fileName);
+    void deleteStory(int id);
+    void exit(std::string filename);
+    void createTask(int storyId, int id, std::string description);
+    void listTasks(int id);
+    void deleteTask(int storyId, int id);
+    void moveTask(int storyId, int id, int column);
+    void updateTask(int storyId, int id, std::string description);
 
-    std::vector<Story*> backlog;
-  private:
-    bool loadStory(int id, std::string description, bool complete);
-    bool loadTask(int storyId, int id, std::string description, int column);
-    bool storyExists(int id);
-    bool storeBoard(std::string filename); 
-    Story* getStory(int id);
     
+  private:
+    std::vector<Story*> backlog;
+    void loadStory(int id, std::string description, bool complete);
+    void loadTask(int storyId, int id, std::string description, int column);
+    bool storyExists(int id);
+    void storeBoard(std::string filename);
+    Story* getStory(int id);
+
 };
+
+

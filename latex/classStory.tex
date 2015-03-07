@@ -1,0 +1,83 @@
+\hypertarget{classStory}{\section{Story Class Reference}
+\label{classStory}\index{Story@{Story}}
+}
+
+
+Represents a story on the board.  
+
+
+
+
+{\ttfamily \#include $<$task\-Board.\-hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classStory_ab222bafa7fbb82def385df8f35621c32}{Story} (int id, std\-::string description)
+\item 
+\hypertarget{classStory_a68096578fd7bb32088ef5bfa65ec100e}{bool {\bfseries create\-Task} (int id, std\-::string description)}\label{classStory_a68096578fd7bb32088ef5bfa65ec100e}
+
+\item 
+\hypertarget{classStory_a22003a9f2e8721483493326a3712b5c7}{bool {\bfseries load\-Task} (int id, std\-::string description, int column)}\label{classStory_a22003a9f2e8721483493326a3712b5c7}
+
+\item 
+\hypertarget{classStory_a072d6361d8a07ba58478a974f969035d}{bool {\bfseries move\-Task} (int id, int destination)}\label{classStory_a072d6361d8a07ba58478a974f969035d}
+
+\item 
+\hypertarget{classStory_a62b520195c67e1d198e134bc2c79b376}{bool {\bfseries complete\-Story} (void)}\label{classStory_a62b520195c67e1d198e134bc2c79b376}
+
+\item 
+\hypertarget{classStory_a21ff147f4f1ff5a8a8f9c346c0e4e84e}{bool {\bfseries is\-Complete} (void)}\label{classStory_a21ff147f4f1ff5a8a8f9c346c0e4e84e}
+
+\item 
+\hypertarget{classStory_ad482dc2ff43a8085ac16e9364435df70}{bool {\bfseries delete\-Task} (int id)}\label{classStory_ad482dc2ff43a8085ac16e9364435df70}
+
+\item 
+\hypertarget{classStory_a57d8f05b12e927e098b309274c7db77e}{bool {\bfseries update\-Task} (int id, std\-::string description)}\label{classStory_a57d8f05b12e927e098b309274c7db77e}
+
+\item 
+\hypertarget{classStory_a7de8e8bcc4d81790c288bb681001f1e8}{bool {\bfseries task\-Exists} (int id)}\label{classStory_a7de8e8bcc4d81790c288bb681001f1e8}
+
+\item 
+\hypertarget{classStory_a91b7f5449afc4e88e1a50139a03c5fd1}{bool {\bfseries clear\-Story} (void)}\label{classStory_a91b7f5449afc4e88e1a50139a03c5fd1}
+
+\item 
+\hypertarget{classStory_a755a23687d49d33ad8550d59d8f631fc}{int {\bfseries get\-Id} (void)}\label{classStory_a755a23687d49d33ad8550d59d8f631fc}
+
+\item 
+\hypertarget{classStory_aa9e6a427ec6689788af034ba4f4f06ad}{std\-::string {\bfseries get\-Description} (void)}\label{classStory_aa9e6a427ec6689788af034ba4f4f06ad}
+
+\item 
+\hypertarget{classStory_a861b65e9f974885f4e48805da991c127}{bool {\bfseries store\-Story} (std\-::ofstream \&file)}\label{classStory_a861b65e9f974885f4e48805da991c127}
+
+\item 
+\hypertarget{classStory_a900e10a9849f8c5ff88f580bfd0e1249}{bool {\bfseries list\-Tasks} ()}\label{classStory_a900e10a9849f8c5ff88f580bfd0e1249}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Represents a story on the board. 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classStory_ab222bafa7fbb82def385df8f35621c32}{\index{Story@{Story}!Story@{Story}}
+\index{Story@{Story}!Story@{Story}}
+\subsubsection[{Story}]{\setlength{\rightskip}{0pt plus 5cm}Story\-::\-Story (
+\begin{DoxyParamCaption}
+\item[{int}]{id, }
+\item[{std\-::string}]{description}
+\end{DoxyParamCaption}
+)}}\label{classStory_ab222bafa7fbb82def385df8f35621c32}
+Constructor for story. Since a story must be associated with the board, can only be called by the board. 
+\begin{DoxyParams}{Parameters}
+{\em id} & I\-D of the new story to be made. Cannot already exist. \\
+\hline
+{\em description} & Short decription of the story. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+task\-Board.\-hpp\item 
+Story.\-cpp\end{DoxyCompactItemize}

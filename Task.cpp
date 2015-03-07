@@ -7,9 +7,8 @@ Task::Task(int id, std::string description) {
   this->description = description;
 }
 
-bool Task::updateDescription(std::string description) {
+void Task::updateDescription(std::string description) {
   this->description = description;
-  return true;
 }
 
 int Task::getId(void) {
@@ -20,10 +19,9 @@ std::string Task::getDescription(void) {
   return description;
 }
 
-bool Task::storeTask(std::ofstream& file, int storyId, int column) {
+void Task::storeTask(std::ofstream& file, int storyId, int column) {
   file << "T," << storyId << "," << getId() << "," << column << std::endl;
   file << getDescription() << std::endl;
-  return true;
 }
 
 

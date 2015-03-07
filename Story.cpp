@@ -1,7 +1,15 @@
 #include "taskBoard.hpp"
+#include "exceptions.hpp"
 #include <list>
 #include <fstream>
 #include <iostream>
+
+/**
+ * Constructor for story.
+ * Since a story must be associated with the board, can only be called by the board.
+ * @param id ID of the new story to be made. Cannot already exist.
+ * @param description Short decription of the story.
+ */
 
 Story::Story(int id, std::string description) {
   this->id = id;
@@ -13,27 +21,39 @@ Story::Story(int id, std::string description) {
   complete = false;
 }
 
-bool Story::createTask(int id, std::string description) {
+/**
+ * Creates a task and places it in the backlog of this story.
+ * Since a task must have an associated story, this must be called when making a new task.
+ *
+ * @param id ID of the new task.
+ * @param description Short description of the task.
+ * @return True if the task was created, false if the task already existed.
+ */
+
+void Story::createTask(int id, std::string description) {
   if (!taskExists(id)) {
     tasks[TODO].push_back(new Task(id, description));
-    return true;
+  } else {
+    throw ex_taskExists(id);
   }
-  error = ERROR_TASK_EXISTS;
-  return false;
 }
 
-bool Story::loadTask(int id, std::string description, int column) {
-  if (createTask(id, description)) {
-    if (column != TODO) {
-      return moveTask(id, column);
-    }
-    return true;
+/**
+ *
+ * @param id
+ * @param description
+ * @param column
+ * @return
+ */
+
+void Story::loadTask(int id, std::string description, int column) {
+  createTask(id, description);
+  if (column != TODO) {
+    moveTask(id, column);
   }
-  // error already set to ERROR_TASK_EXISTS;
-  return false;
 }
 
-bool Story::moveTask(int id, int destination) {
+void Story::moveTask(int id, int destination) {
   
   for (auto column = tasks.begin(); column != tasks.end(); column++) {
     for (auto task = column->begin(); task != column->end(); task++) { 
@@ -43,51 +63,44 @@ bool Story::moveTask(int id, int destination) {
           tasks[destination].push_back(*task);
           // Remove from original location
           column->erase(task); // Invalidated iterator, but we're exiting anyway
-          return true;
         } else {
-          
-          error = ERROR_COLUMN;
-          return false;
+          throw ex_column(id);
         }
       }
     }
   }
-  error = ERROR_NO_TASK;
-  return false;
+  throw ex_noTask(id);
 }
 
 
-bool Story::completeStory(void) {
+void Story::completeStory(void) {
   complete = true;
-  return true;
 }
 
 bool Story::isComplete(void) {
   return complete;
 }
 
-bool Story::deleteTask(int id) {
+void Story::deleteTask(int id) {
   for (auto column = tasks.begin(); column != tasks.end(); column++) {
     for (auto task = column->begin(); task != column->end();) { 
       if ((*task)->getId() == id) {
         delete *task;
         column->erase(task); // Invalidated iterator, but we're exiting anyway
-        return true;
+        return;
       }
     }
   }
-  error = ERROR_NO_TASK;
-  return false;
+  throw ex_noTask(id);
 }
 
-bool Story::updateTask(int id, std::string description) {
+void Story::updateTask(int id, std::string description) {
   Task* task = getTask(id);
   if (getTask(id)) {
     task->updateDescription(description);
-    return true;
+  } else {
+    throw ex_noTask(id);
   }
-  error = ERROR_NO_TASK;
-  return false;
 }
 
 bool Story::taskExists(int id) {
@@ -97,14 +110,13 @@ bool Story::taskExists(int id) {
   return false;
 }
 
-bool Story::clearStory(void) {
+void Story::clearStory(void) {
   for (auto column = tasks.begin(); column != tasks.end(); column++) {
     for (auto task = column->begin(); task != column->end();) {      
       delete *task;
       task = column->erase(task);
     }
   }
-  return true;
 }
 
 
@@ -128,7 +140,7 @@ Task* Story::getTask(int id) {
   return NULL;
 }
 
-bool Story::storeStory(std::ofstream &file) {
+void Story::storeStory(std::ofstream &file) {
   file << "S," << getId() << "," << isComplete() << std::endl;
   file << getDescription() << std::endl;
   for (auto column = tasks.begin(); column != tasks.end(); column++) {
@@ -136,10 +148,9 @@ bool Story::storeStory(std::ofstream &file) {
       (*task)->storeTask(file, getId(), std::distance(tasks.begin(), column));
     }
   }
-  return NULL;
 }
 
-bool Story::listTasks(void) {
+void Story::listTasks(void) {
   for (auto column = tasks.begin(); column != tasks.end(); column++) {
     for (auto task = column->begin(); task != column->end(); task++) {
       std::cout << (*task)->getId() << " : ";
@@ -153,11 +164,9 @@ bool Story::listTasks(void) {
       } else if (col == DONE) {
         std::cout << "Done : ";
       } else {
-        error = ERROR_INTEGRITY;
-        return false;
+        throw ex_integrity();
       }
       std::cout << (*task)->getDescription() << std::endl;
     }
   }
-  return true;
 }

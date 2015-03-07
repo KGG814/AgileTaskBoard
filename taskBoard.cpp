@@ -3,14 +3,14 @@
 #include <list>
 #include <boost/algorithm/string.hpp>
 #include "taskBoard.hpp"
+#include "exceptions.hpp"
 
 #define DATA_FILE "data.csv"
 
-void initializeFunctionMap(void);
 bool run(int argc, char* argv[], Board &board);
-bool parse(std::string command, Board &board);
-void printErrors(void);
-int error = NO_ERROR;
+bool parse_catch(std::string command, Board &board);
+void parse(std::string command, Board &board);
+void initializeFunctionMap();
 
 enum Function { NotDefined,
                 Create,
@@ -23,13 +23,12 @@ enum Function { NotDefined,
 static std::map<std::string, Function> functionMap;
 int main(int argc, char* argv[]) {
   Board board;
-  if (board.loadBoard(DATA_FILE)) {
-    std::cout << "Save data loaded" << std::endl;
-  } else {
-    std::cout << "Save data not found" << std::endl;
+  try {
+    board.loadBoard(DATA_FILE);
+  } catch (ex_file &e){
+    std::cout << "File " << e.file << " could not be opened." << std::endl; 
+    return 1;
   }
-  initializeFunctionMap();
-  printErrors();
   if (run(argc, argv, board)) {
     board.exit(DATA_FILE);
     return 0;
@@ -41,83 +40,109 @@ int main(int argc, char* argv[]) {
 
 bool run(int argc, char* argv[], Board &board) {
   bool noError = true;
-  for (int i = 1; i < argc; i++) { 
-    if (!parse(argv[i], board)) {
-      
+  initializeFunctionMap();
+  for (int i = FIRST_COMMAND; i < argc; i++) {
+    if (std::string(argv[i]) == "exit") {
+      return noError;
+    } else if (!parse_catch(argv[i], board)) {
       noError = false;
-      printErrors();
     }
   }
   for (std::string command; std::getline(std::cin, command);) {
     if (command == "exit") {
       return noError;
-    }
-    if (!parse(command, board)) {
-      
+    } else if (!parse_catch(command, board)) {
       noError = false;
-      printErrors();
     }
   }
   return noError;
 }
 
-bool parse(std::string command, Board &board) {
+bool parse_catch(std::string command, Board &board) {
+  try {   
+    parse(command, board);
+  } catch (ex_noStory &e) {
+    std::cout << "Story " << e.id << " does not exist." << std::endl;
+    return false;
+  } catch (ex_noTask &e) {
+    std::cout << "Task " << e.id << " does not exist." << std::endl;
+    return false;
+  } catch (ex_column &e) {
+    std::cout << "Task " << e.id << " already in that location." << std::endl;
+    return false;
+  } catch (ex_integrity &e) {    
+    std::cout << e.msg << std::endl;
+    return false;
+  } catch (ex_storyExists &e) {
+    std::cout << "Story " << e.id << " already exists." << std::endl;
+    return false;
+  } catch (ex_taskExists &e){
+    std::cout << "Task " << e.id << " already exists." << std::endl;
+    return false;
+  } catch (ex_undefArg &e){
+    std::cout << "Undefined arguments: \"" << e.command << "\"" << std::endl;
+    return false;
+  } catch (ex_numArg &e){
+    std::cout << "Not enough arguments: \"" << e.command << "\"" << std::endl;
+    return false;
+  } catch (ex_undefCmd &e) {
+    std::cout << "Undefined command: \"" << e.command << "\"" << std::endl;
+    return false;
+  }
+}
+
+void parse(std::string command, Board &board) {
   
   std::list<std::string> tokens;
   boost::split(tokens, command, boost::is_any_of(" "));
-  if (tokens.size() < 2) {
-    error = ERROR_UNDEF_CMD;
-    return false;
+  if (tokens.size() < MIN_ARGS) {
+    throw ex_undefCmd(command);
   }
   std::string function = tokens.front();
   tokens.pop_front();
   switch (functionMap[function]) {
-    
     case Create:  
       function = tokens.front();
       tokens.pop_front();
       if (function == "story") {
-        if (tokens.size() >= 2) {
+        if (tokens.size() >= CREATE_STORY_ARGS) {
           int id = std::stoi(tokens.front());
           tokens.pop_front();
-          return board.createStory(id, boost::algorithm::join(tokens, " "));
+          board.createStory(id, boost::algorithm::join(tokens, " "));
+          break;
         } else {
-          error = ERROR_NUM_ARG;
-          return false;
+          throw ex_numArg(command);
         }    
       } else if (function == "task") {
-        if (tokens.size() >= 3) {
+        if (tokens.size() >= CREATE_TASK_ARGS) {
           int storyId = std::stoi(tokens.front());
           tokens.pop_front();
           int id = std::stoi(tokens.front());
           tokens.pop_front();
-          return board.createTask(storyId, id,
-                                  boost::algorithm::join(tokens, " "));
+          board.createTask(storyId, id, boost::algorithm::join(tokens, " "));
+          break;
         } else {
-          error = ERROR_NUM_ARG;
-          return false;
+          throw ex_numArg(command);
         }
       } else {  
-        error = ERROR_UNDEF_CMD;
-        return false;
+        throw ex_undefCmd(command);
       }
     case List:
       function = tokens.front();
       tokens.pop_front();
       if (function == "stories") {
         board.listStories();
-        return true;
+        break;
       } else if (function == "tasks") {
         if (!tokens.empty()) {
           int storyId = std::stoi(tokens.front());
-          return board.listTasks(storyId);
+          board.listTasks(storyId);
+          break;
         } else {
-          error = ERROR_NUM_ARG;
-          return false;
+          throw ex_numArg(command);
         }
       } else {  
-        error = ERROR_UNDEF_CMD;
-        return false;
+        throw ex_undefCmd(command);
       }
     case Delete:
       function = tokens.front();
@@ -125,25 +150,24 @@ bool parse(std::string command, Board &board) {
       if (function == "story") {
         if (!tokens.empty()) {
           int id = std::stoi(tokens.front());
-          return board.deleteStory(id);
+          board.deleteStory(id);
+          break;
         } else {
-          error = ERROR_NUM_ARG;
-          return false;
+          throw ex_numArg(command);
         }  
       } else if (function == "task") {
-        if (tokens.size() >= 2) {
+        if (tokens.size() >= DELETE_TASK_ARGS) {
           int storyId = std::stoi(tokens.front());
           tokens.pop_front();
           int id = std::stoi(tokens.front());
           tokens.pop_front();
-          return board.deleteTask(storyId, id);
+          board.deleteTask(storyId, id);
+          break;
         } else {
-          error = ERROR_NUM_ARG;
-          return false;
+          throw ex_numArg(command);
         }
       } else {  
-        error = ERROR_UNDEF_CMD;
-        return false;
+        throw ex_undefCmd(command);
       }
     case Complete:
       function = tokens.front();
@@ -151,20 +175,19 @@ bool parse(std::string command, Board &board) {
       if (function == "story") {
         if (!tokens.empty()) {
           int id = std::stoi(tokens.front());
-          return board.completeStory(id);
+          board.completeStory(id);
+          break;
         } else {
-          error = ERROR_NUM_ARG;
-          return false;
+          throw ex_numArg(command);
         }
       } else {  
-        error = ERROR_UNDEF_CMD;
-        return false;
+        throw ex_undefCmd(command);
       }
     case Move:
       function = tokens.front();
       tokens.pop_front();
       if (function == "task") {
-        if (tokens.size() >= 3) {
+        if (tokens.size() >= MOVE_TASK_ARGS) {
           int storyId = std::stoi(tokens.front());
           tokens.pop_front();
           int id = std::stoi(tokens.front());
@@ -180,40 +203,35 @@ bool parse(std::string command, Board &board) {
           } else if (columnString == "Done") {
             column = DONE;
           } else {
-            error = ERROR_UNDEF_ARG;
-            return false;
+            throw ex_undefArg(command);
           }
-          return board.moveTask(storyId, id, column);
+          board.moveTask(storyId, id, column);
+          break;
         } else {
-          error = ERROR_NUM_ARG;
-          return false;
+          throw ex_numArg(command);
         }
       } else {  
-        error = ERROR_UNDEF_CMD;;
-        return false;
+        throw ex_undefCmd(command);
       }
     case Update:
       function = tokens.front();
       tokens.pop_front();
       if (function == "task") {
-        if (tokens.size() >= 3) {
+        if (tokens.size() >= UPDATE_TASK_ARGS) {
           int storyId = std::stoi(tokens.front());
           tokens.pop_front();
           int id = std::stoi(tokens.front());
           tokens.pop_front();
-          return board.updateTask(storyId, id,
-                                  boost::algorithm::join(tokens, " "));
+          board.updateTask(storyId, id, boost::algorithm::join(tokens, " "));
+          break;
         } else {
-          error = ERROR_NUM_ARG;
-          return false;
+          throw ex_numArg(command);
         }
       } else {  
-        error = ERROR_UNDEF_CMD;
-        return false;
+        throw ex_undefCmd(command);
       }
     default:
-      error = ERROR_UNDEF_CMD;
-      return false;
+      throw ex_undefCmd(command);
   }
 }
 
@@ -225,46 +243,3 @@ void initializeFunctionMap(void) {
   functionMap["move"] = Move;
   functionMap["update"] = Update;
 }
-
-void printErrors(void) {
-  switch (error) {
-    case NO_ERROR:
-      break;
-    case ERROR_NO_STORY:
-      std::cout << "Specified story not found" << std::endl;
-      break;
-    case ERROR_NO_TASK:
-      std::cout << "Specified task not found" << std::endl;
-      break;
-    case ERROR_COLUMN:
-      std::cout << "Task is already in that column" << std::endl;
-      break;
-    case ERROR_INTEGRITY:
-      std::cout << "Task has invalid location" << std::endl;
-      break;
-    case ERROR_FILE:
-      std::cout << "Save data could not be opened" << std::endl;
-      break;
-    case ERROR_STORY_EXISTS:
-      std::cout << "Story with that ID already exists" << std::endl;
-      break;
-    case ERROR_TASK_EXISTS:
-      std::cout << "Task with that ID already exists" << std::endl;
-      break;
-    case ERROR_UNDEF_ARG:
-      std::cout << "Undefined column argument" << std::endl;
-      break;
-    case ERROR_NUM_ARG:
-      std::cout << "Not enough arguments" << std::endl;
-      break;
-    case ERROR_UNDEF_CMD:
-      std::cout << "Command Not Found" << std::endl;
-      break;
-    default:
-      std::cout << "Undefined Error" << std::endl;
-      break;
-  }
-  error = NO_ERROR;
-}
-
-
