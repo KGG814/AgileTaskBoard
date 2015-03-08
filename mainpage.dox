@@ -1,0 +1,84 @@
+/**
+\mainpage
+
+\section sec1 Info
+<p> This manual documents the Scrum %Task %Board. 
+<br><b>Author:</b>	Kalana Gamlath
+<br><b>Date:</b>		March, 2015
+</p>
+
+<p> More information about the Scrum %Task %Board can be found 
+<a href="http://www.mountaingoatsoftware.com/agile/scrum/task-boards">here</a>.
+</p>
+\subsection sebsec2 Notes to Integrated Research Assessors
+Recommended reading: Story, Task, Board
+
+Although this wasn't mentioned in the brief, I assumed that once a Story was
+marked complete, it would be invalid to change it.
+
+I added a command "exit", to allow for safe termination. You can execute 
+multiple commands and exit automatically by adding an exit at the end, <br>
+allowing for easy external batch testing. You may also use EOF (Ctrl-D in Bash) 
+to exit safely.
+
+If you terminate the program prematurely, then any state changed in the current
+session will be reverted. <br>
+I chose to do this instead of saving state after every
+command since that seemed far too inefficient, especially while 
+using files for save data.<br>
+Could save state every time if we had a DBMS.
+
+The program contains exceptions for individual commands, but if multiple commands
+are input, it will continue with execution after the exception is caught. <br>
+An error will not exit the program.
+However, the program will still return 1 on exit, as specified.
+
+\subsection subsec3 Compilation
+The program can be compiled by using the included Makefile. 
+Simply type <b>make</b> into your favourite shell. 
+The executable is named <b>taskBoard</b>.
+
+\subsection subsec4 Tests
+Tests can be compiled by running <b>make tests</b>, 
+and run by running the executable <b>taskBoardTests</b>.
+\subsection subsec1 Future build considerations
+Potential improvements for this system that may be implemented in the future:
+- Interactive GUI that displays task board in inituitive way.
+- DBMS integration (e.g. MySQL) to have scalable, reliable data storage.
+  - Not implemented in this version due to brief requirements / portability
+ issues.
+- Server based implementation that allows remote access.
+- Git/SVN integration.
+- Code integration (generate tasks from code / TODO tags).
+<br><br>
+\section sec2 Commands
+Input                               | Description
+------------------------------------| ------------------------------------
+create story \<id\> \<description\> | Create a new story with the given ID and description
+list stories                        | List all user stories that have been created
+delete story \<id\>                 | Mark the user story with the given ID as completed
+complete story \<id\>               | Mark the user story with the given ID as completed
+create task \<storyId\> \<id\> \<description\> | Create a new task with the given task ID and description, and associate it with the given storyId
+list tasks <storyId>              | List all the tasks associated with the given storyId
+delete task <storyId> <id>          | Deletes the task with the given ID associated with the given storyId
+move task \<storyId\> \<id\> \<new column\>| Move the task to the new column (To Do, In Process, etc)
+update task \<storyId\> \<id\> \<new description\> | Update/Modify a task’s description
+\subsection subsec2 Notes
+- Commands are case sensitive.
+- Commands can be input through command line or internal shell (or a combination of both).
+  - Command line commands are executed first.
+- For command line input, whole commands (with arguments) are input as arguments.
+- Commands do not require quotes, but descriptions can contain them if desired
+  (Should be escaped if using command line input).
+  - For example, this would be valid input (In the internal shell).
+    - <b> create task 0 0 word1 "word2" </b>
+  - This would create a task 0 in story 0, with the description: word1 "word2".
+  - The command line input would look like this (assuming standard bash escaping).
+    - <b> ./taskBoard "create task 0 0 word1 \"word2\\"" </b>
+- Valid <b> <new column\> </b> tags are:
+  - To Do
+  - In Process
+  - To Verify
+  - Done
+- <b> <new column\> </b> tags do not require quotation marks.
+*/

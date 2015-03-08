@@ -10,9 +10,10 @@
 bool run(int argc, char* argv[], Board &board);
 bool parse_catch(std::string command, Board &board);
 void parse(std::string command, Board &board);
-void initializeFunctionMap();
+void initializeCommandMap();
 
-enum Function { NotDefined,
+/* Enum used for the map */
+enum Command { NotDefined,
                 Create,
                 List,
                 Delete,
@@ -20,13 +21,15 @@ enum Function { NotDefined,
                 Move,
                 Update};
 
-static std::map<std::string, Function> functionMap;
+/* A map that allows commands to be mapped to board methods */
+static std::map<std::string, Command> commandMap;
+
 int main(int argc, char* argv[]) {
   Board board;
   try {
     board.loadBoard(DATA_FILE);
   } catch (ex_file &e){
-    std::cout << "File " << e.file << " could not be opened." << std::endl; 
+    std::cerr << "File " << e.file << " could not be opened." << std::endl;
     return 1;
   }
   if (run(argc, argv, board)) {
@@ -38,11 +41,19 @@ int main(int argc, char* argv[]) {
   }
 }
 
+/**
+ * First runs the supplied command line inputs, then accepts commands from stdin
+ * @param argc Argc of program passed through.
+ * @param argv Argv of program passed through.
+ * @param board Board object.
+ * @return False if an error occurred at any point, true otherwise.
+ */
 bool run(int argc, char* argv[], Board &board) {
   bool noError = true;
-  initializeFunctionMap();
+  initializeCommandMap();
   for (int i = FIRST_COMMAND; i < argc; i++) {
     if (std::string(argv[i]) == "exit") {
+    	/* Immediate exit on exit command */
       return noError;
     } else if (!parse_catch(argv[i], board)) {
       noError = false;
@@ -50,6 +61,7 @@ bool run(int argc, char* argv[], Board &board) {
   }
   for (std::string command; std::getline(std::cin, command);) {
     if (command == "exit") {
+    	/* Immediate exit on exit command */
       return noError;
     } else if (!parse_catch(command, board)) {
       noError = false;
@@ -58,49 +70,85 @@ bool run(int argc, char* argv[], Board &board) {
   return noError;
 }
 
+/**
+ * Wrapper function for parse that catches all the necessary exceptions.
+ * @param command The command to be parsed.
+ * @param board
+ * @return False if an exception was handled, true otherwise.
+ */
 bool parse_catch(std::string command, Board &board) {
   try {   
     parse(command, board);
   } catch (ex_noStory &e) {
-    std::cout << "Story " << e.id << " does not exist." << std::endl;
+    std::cerr << "Story " << e.id << " does not exist." << std::endl;
     return false;
   } catch (ex_noTask &e) {
-    std::cout << "Task " << e.id << " does not exist." << std::endl;
+    std::cerr << "Task " << e.id << " does not exist." << std::endl;
     return false;
   } catch (ex_column &e) {
-    std::cout << "Task " << e.id << " already in that location." << std::endl;
+    std::cerr << "Task " << e.id << " already in that location." << std::endl;
     return false;
   } catch (ex_integrity &e) {    
-    std::cout << e.msg << std::endl;
+    std::cerr << e.msg << std::endl;
     return false;
   } catch (ex_storyExists &e) {
-    std::cout << "Story " << e.id << " already exists." << std::endl;
+    std::cerr << "Story " << e.id << " already exists." << std::endl;
     return false;
   } catch (ex_taskExists &e){
-    std::cout << "Task " << e.id << " already exists." << std::endl;
+    std::cerr << "Task " << e.id << " already exists." << std::endl;
     return false;
   } catch (ex_undefArg &e){
-    std::cout << "Undefined arguments: \"" << e.command << "\"" << std::endl;
+    std::cerr << "Undefined arguments: \"" << e.command << "\"" << std::endl;
     return false;
   } catch (ex_numArg &e){
-    std::cout << "Not enough arguments: \"" << e.command << "\"" << std::endl;
+    std::cerr << "Not enough arguments: \"" << e.command << "\"" << std::endl;
     return false;
   } catch (ex_undefCmd &e) {
-    std::cout << "Undefined command: \"" << e.command << "\"" << std::endl;
+    std::cerr << "Undefined command: \"" << e.command << "\"" << std::endl;
     return false;
+  } catch (ex_undefCol &e) {
+    std::cerr << e.msg << std::endl;
+    return false;
+  } catch (ex_taskDone &e) {
+    std::cerr << "Task " << e.id << " is done. Cannot be moved."<< std::endl;
+    return false;
+  } catch (ex_progression &e) {
+    std::cerr << e.msg << std::endl;
+    return false;
+  } catch (ex_incompleteTasks &e) {
+    std::cerr << "Story " << e.id <<
+    " can not be completed with incomplete tasks." << std::endl;
+  } catch (ex_storyComplete &e) {
+    std::cerr << "Cannot perform that operation on Story " << e.id <<
+    ": story is complete" << std::endl;
+  } catch (std::invalid_argument& e) {
+  	std::cerr << "Invalid argument: " << command << std::endl;
   }
 }
 
+/**
+ * Parses the input of the given command, using the map. Note that extra arguments are ignored,
+ * except for commands with descriptions, which will assume they are part of the description.
+ * @param command The command to be parsed.
+ * @param board The Board object being worked on.
+ * @throw ex_undefCmd Raised if the command is not recognised.
+ * @throw	ex_numArg Raised if the command does not have enough arguments.
+ * @throw undef_Arg Raised if an argument was undefined.
+ * @throw invalid_argument Raised if stoi receives invalid input. (Raised by stoi).
+ */
 void parse(std::string command, Board &board) {
   
   std::list<std::string> tokens;
+  /* Splitting the command on spaces*/
   boost::split(tokens, command, boost::is_any_of(" "));
   if (tokens.size() < MIN_ARGS) {
     throw ex_undefCmd(command);
   }
+  /* Parse based on the first word of the command */
   std::string function = tokens.front();
   tokens.pop_front();
-  switch (functionMap[function]) {
+  /* Switch on the enum mapped to by the command map */
+  switch (commandMap[function]) {
     case Create:  
       function = tokens.front();
       tokens.pop_front();
@@ -108,6 +156,7 @@ void parse(std::string command, Board &board) {
         if (tokens.size() >= CREATE_STORY_ARGS) {
           int id = std::stoi(tokens.front());
           tokens.pop_front();
+          /* After getting id, the rest of the tokens are taken as the description */
           board.createStory(id, boost::algorithm::join(tokens, " "));
           break;
         } else {
@@ -119,6 +168,7 @@ void parse(std::string command, Board &board) {
           tokens.pop_front();
           int id = std::stoi(tokens.front());
           tokens.pop_front();
+          /* After getting storyId & i, the rest of the tokens are taken as the description */
           board.createTask(storyId, id, boost::algorithm::join(tokens, " "));
           break;
         } else {
@@ -193,6 +243,7 @@ void parse(std::string command, Board &board) {
           int id = std::stoi(tokens.front());
           tokens.pop_front();
           int column;
+          /* After getting storyId, id & column, the rest of the tokens are taken as description */
           std::string columnString = boost::algorithm::join(tokens, " ");
           if (columnString == "To Do") {
             column = TODO;
@@ -222,6 +273,7 @@ void parse(std::string command, Board &board) {
           tokens.pop_front();
           int id = std::stoi(tokens.front());
           tokens.pop_front();
+          /* After getting storyId & id, the rest of the tokens are taken as the description */
           board.updateTask(storyId, id, boost::algorithm::join(tokens, " "));
           break;
         } else {
@@ -235,11 +287,14 @@ void parse(std::string command, Board &board) {
   }
 }
 
-void initializeFunctionMap(void) {
-  functionMap["create"] = Create;
-  functionMap["list"] = List;
-  functionMap["delete"] = Delete;
-  functionMap["complete"] = Complete;
-  functionMap["move"] = Move;
-  functionMap["update"] = Update;
+/**
+ * Initiliazes the map with the required values.
+ */
+void initializeCommandMap(void) {
+  commandMap["create"] = Create;
+  commandMap["list"] = List;
+  commandMap["delete"] = Delete;
+  commandMap["complete"] = Complete;
+  commandMap["move"] = Move;
+  commandMap["update"] = Update;
 }

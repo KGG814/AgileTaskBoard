@@ -1,6 +1,5 @@
 #include <vector>
 #include <string>
-#include <exception>
 
 #define TODO                0
 #define IN_PROCESS          1
@@ -25,9 +24,16 @@
 
 #define DELIM_OFFSET        1
 
+#define MAX_PROGRESSION     1
+
 
 /**
- * \brief Represents a task in a story on the board.
+ * \brief Represents a task in a Story on the Board.
+ *
+ * Each task represents something that needs to be done to implement it's story. <br>
+ * It contains a brief description of the task. <br>
+ * The task can not exist without a story.
+ *
  */
 
 class Task {
@@ -44,13 +50,20 @@ class Task {
 
 /**
  * \brief Represents a story on the board.
+ *
+ * Each story represents a unit of work in the Agile/Scrum development framework. <br>
+ * It contains a brief description of a User use case, followed by a list of Task objects to implement
+ * this. <br>
+ * The tasks are divided into four groups: To Do, In Process, To Verify, Done. <br>
+ * Stories may be marked as completed once all tasks are complete.
+ * Once this happens, no changes are allowed to the story.
  */
 class Story {
   public:     
     Story(int id, std::string description);
-    void createTask(int id, std::string description);
+    void createTask(int id, std::string description, bool load);
     void loadTask(int id, std::string description, int column);
-    void moveTask(int id, int destination);                                
+    void moveTask(int id, int destination, bool load);
     void completeStory(void);
     bool isComplete(void);
     void deleteTask(int id);
@@ -71,7 +84,7 @@ class Story {
 };
 
 /**
- *  \brief Representation of a Scrum task board
+ *  \brief Representation the whole Scrum task board.
  */
 
 class Board {
@@ -80,10 +93,10 @@ class Board {
     void createStory(int id, std::string description);
     void completeStory(int id);
     void loadBoard(std::string fileName);
-    void deleteStory(int id);
+    void deleteStory(int storyId);
     void exit(std::string filename);
     void createTask(int storyId, int id, std::string description);
-    void listTasks(int id);
+    void listTasks(int storyId);
     void deleteTask(int storyId, int id);
     void moveTask(int storyId, int id, int column);
     void updateTask(int storyId, int id, std::string description);
@@ -96,7 +109,6 @@ class Board {
     bool storyExists(int id);
     void storeBoard(std::string filename);
     Story* getStory(int id);
-
 };
 
 
