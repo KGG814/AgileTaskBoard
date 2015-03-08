@@ -2,7 +2,7 @@
 \mainpage
 
 \section sec1 Info
-<p> This manual documents the Scrum %Task %Board. 
+<p> This manual documents the Scrum %Task %Board, written in C++. 
 <br><b>Author:</b>	Kalana Gamlath
 <br><b>Date:</b>		March, 2015
 <br><b>Version:</b>		1.0
