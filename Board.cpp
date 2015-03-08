@@ -140,8 +140,7 @@ void Board::loadBoard(std::string fileName) {
  * @param storyId ID of the story to be deleted.
  * @throw ex_noStory Raised if the story to be deleted does not exist.
  */
-void Board::deleteStory(int storyId) {
-  Story* toDelete;  
+void Board::deleteStory(int storyId) {  
   for (auto story = backlog.begin(); story != backlog.end(); story++) {
     if ((*story)->getId() == storyId) {
       (*story)->clearStory();

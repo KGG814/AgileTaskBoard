@@ -26,6 +26,7 @@ Story::Story(int id, std::string description) {
  *
  * @param id ID of the new task.
  * @param description Short description of the task.
+ * @param load Allows the completeness of the story to be ignored while loading.
  * @throw ex_storyComplete Raised if the story where we are trying to create the task is
  * marked complete, unless we are loading.
  */
@@ -58,6 +59,7 @@ void Story::loadTask(int id, std::string description, int column) {
  * Move a Task to a specified location.
  * @param id ID of the task to be moved.
  * @param destination Where specified task will be moved to.
+ * @param load Allows the completeness of the story to be ignored while loading.
  * @throw ex_storyComplete Raised if the story containing the task to be moved is complete, unless
  * we are loading
  * @throw ex_undefCol Raised if the destination is not defined.

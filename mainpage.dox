@@ -5,6 +5,8 @@
 <p> This manual documents the Scrum %Task %Board. 
 <br><b>Author:</b>	Kalana Gamlath
 <br><b>Date:</b>		March, 2015
+<br><b>Version:</b>		1.0
+<br>This version was written for a task assigned by Integrated Research.
 </p>
 
 <p> More information about the Scrum %Task %Board can be found 
@@ -32,24 +34,25 @@ The program contains exceptions for individual commands, but if multiple command
 are input, it will continue with execution after the exception is caught. <br>
 An error will not exit the program.
 However, the program will still return 1 on exit, as specified.
-
+<br><br>
 \subsection subsec3 Compilation
 The program can be compiled by using the included Makefile. 
 Simply type <b>make</b> into your favourite shell. 
 The executable is named <b>taskBoard</b>.
-
+<br><br>
 \subsection subsec4 Tests
 Tests can be compiled by running <b>make tests</b>, 
 and run by running the executable <b>taskBoardTests</b>.
+<br><br>
 \subsection subsec1 Future build considerations
 Potential improvements for this system that may be implemented in the future:
-- Interactive GUI that displays task board in inituitive way.
+- Interactive GUI that displays the task board in an intuitive way.
 - DBMS integration (e.g. MySQL) to have scalable, reliable data storage.
   - Not implemented in this version due to brief requirements / portability
  issues.
 - Server based implementation that allows remote access.
 - Git/SVN integration.
-- Code integration (generate tasks from code / TODO tags).
+- IDE integration (generate tasks from code / TODO tags).
 <br><br>
 \section sec2 Commands
 Input                               | Description

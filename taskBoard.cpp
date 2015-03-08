@@ -118,12 +118,16 @@ bool parse_catch(std::string command, Board &board) {
   } catch (ex_incompleteTasks &e) {
     std::cerr << "Story " << e.id <<
     " can not be completed with incomplete tasks." << std::endl;
+    return false;
   } catch (ex_storyComplete &e) {
     std::cerr << "Cannot perform that operation on Story " << e.id <<
     ": story is complete" << std::endl;
+    return false;
   } catch (std::invalid_argument& e) {
   	std::cerr << "Invalid argument: " << command << std::endl;
+    return false;
   }
+  return true;
 }
 
 /**
